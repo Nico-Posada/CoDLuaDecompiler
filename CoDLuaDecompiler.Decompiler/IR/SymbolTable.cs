@@ -50,9 +50,10 @@ namespace CoDLuaDecompiler.Decompiler.IR
         {
             // Get the highest regs
             var newRegNum = ScopeStack.Peek()
-                .Select(st => st.Key.StartsWith("REG") ? int.Parse(st.Key.Substring(3)) : -1)
-                .Where(reg => reg != -1)
-                .Max() + 1;
+                    .Select(st => st.Key.StartsWith("REG") && int.TryParse(st.Key.AsSpan(3), out int r) ? r : -1)
+                    .Where(reg => reg != -1)
+                    .Max() + 1;
+
             Identifier id = new Identifier
             {
                 IdentifierType = IdentifierType.Register,
