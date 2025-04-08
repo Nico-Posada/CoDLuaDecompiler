@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.CommandLine;
+using System.CommandLine.Invocation;
 using CoDLuaDecompiler.AssetExporter;
 using CoDLuaDecompiler.Decompiler;
 using CoDLuaDecompiler.Decompiler.LuaFile;
 using CoDLuaDecompiler.Common;
+using System.Reflection;
+using System.CommandLine.Parsing;
 
 namespace CoDLuaDecompiler.CLI;
 
@@ -41,7 +45,7 @@ class Program
 
             // save output
             File.WriteAllText(outFileName, output);
-            
+
             Console.WriteLine($"Decompiled file: {filePath}");
         }
         catch (Exception e)
@@ -55,9 +59,8 @@ class Program
         var files = new List<string>();
 
         string luaExtension = "*.lua*";
-        if (args.Contains("--debug"))
+        if (UsesDebugInfo)
         {
-            UsesDebugInfo = true;
             luaExtension = "*.luac";
         }
 
@@ -65,7 +68,7 @@ class Program
         {
             if (!File.Exists(arg) && !Directory.Exists(arg))
                 continue;
-            
+
             var attr = File.GetAttributes(arg);
             // determine if we're a directory first
             // if so only includes file that are of ".lua" or ".luac" extension
@@ -82,7 +85,7 @@ class Program
                 Console.WriteLine($"Invalid argument passed {arg} | {File.GetAttributes(arg)}!");
             }
         }
-        
+
         // make sure to remove duplicates
         files = files.Distinct().ToList();
 
@@ -92,29 +95,78 @@ class Program
 
         return files;
     }
-    
-    public void Main(string[] args)
+
+    public void Run(
+        string outputDir,
+        bool doExport, bool doRawDump,
+        bool debug,
+        bool funcStats,
+        IEnumerable<string> args)
     {
-        if (args.Contains("--export"))
+        if (doExport)
         {
             Console.WriteLine("Starting asset export from memory.");
-            _assetExport.ExportAssets(args.Contains("--dump"));
+            _assetExport.ExportAssets(doRawDump);
         }
 
-        if (args.Contains("--functionstats") || args.Contains("-fs"))
-        {
-            AppInfo.ShowFunctionData = true;
-        }
+        AppInfo.ShowFunctionData = funcStats;
+        UsesDebugInfo = debug;
 
         // parse files from arguments
         var files = ParseFilesFromArgs(args);
-        
+
         Console.WriteLine($"Total of {files.Count} to process.");
 
 #if DEBUG
-        files.ForEach(HandleFile);
+            files.ForEach(HandleFile);
 #else
         Parallel.ForEach(files, HandleFile);
 #endif
+    }
+
+    public async Task<int> Main(string[] args)
+    {
+        var outDirOption = new Option<string>(
+            aliases: new string[] { "--output-dir", "-o" },
+            description: "Specify the directory to output decompiled lua files.",
+            getDefaultValue: () => ".");
+
+        var doExport = new Option<bool>(
+            name: "--export",
+            description: "Export luas from a running game's memory (only for older titles).",
+            getDefaultValue: () => false);
+
+        var doRawDump = new Option<bool>(
+            name: "--dump",
+            description: "If --export is enabled, then enabling this will export the raw lua files along with the decompiled lua files.",
+            getDefaultValue: () => false);
+
+        var debug = new Option<bool>(
+            name: "--debug",
+            description: "Will extract debug information from T7 luas. Will change the extension to look for from *.lua to *.luac.",
+            getDefaultValue: () => false);
+
+        var funcStats = new Option<bool>(
+            aliases: new string[] { "--functionstats", "-fs" },
+            description: "Prepends function information to decompiled functions.",
+            getDefaultValue: () => false);
+
+        var luasPath = new Argument<IEnumerable<string>>(
+            name: "paths",
+            description: "A list of 1 or more paths to a directory of luas or a single lua file.");
+
+
+        var rootCommand = new RootCommand("Lua decompiler for Call of Duty games.");
+        rootCommand.AddOption(outDirOption);
+        rootCommand.AddOption(funcStats);
+        rootCommand.AddOption(doExport);
+        rootCommand.AddOption(doRawDump);
+        rootCommand.AddOption(debug);
+        rootCommand.AddArgument(luasPath);
+
+        rootCommand.SetHandler(Run,
+            outDirOption, funcStats, doExport, doRawDump, debug, luasPath);
+
+        return await rootCommand.InvokeAsync(args);
     }
 }

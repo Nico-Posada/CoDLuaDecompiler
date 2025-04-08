@@ -37,7 +37,7 @@ public class Startup
 
         var container = builder.Build();
         var updateTask = container.Resolve<GithubUpdateChecker>().CheckForUpdate();
-        container.Resolve<Program>().Main(args);
+        await container.Resolve<Program>().Main(args);
         await updateTask;
 
         Console.WriteLine("Press enter to exit");
