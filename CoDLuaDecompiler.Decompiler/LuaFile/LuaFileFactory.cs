@@ -22,6 +22,8 @@ namespace CoDLuaDecompiler.Decompiler.LuaFile
                     return new LuaJitFileBocw(reader);
                 if (bytes[3] == 0x83)
                     return new LuaJitFileMw2(reader);
+                if (bytes[3] == 0x84)
+                    return new LuaJitFileBO6(reader);
             }
             
             if (bytes[0] != 0x1B || bytes[1] != 0x4C || bytes[2] != 0x75 || bytes[3] != 0x61)

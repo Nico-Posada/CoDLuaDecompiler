@@ -40,8 +40,18 @@ class Program
             // decompile file
             var output = _decompiler.Decompile(file);
 
-            // replace extension
-            var outFileName = Path.ChangeExtension(filePath, ".dec.lua");
+            string outFileName;
+            if (AppInfo.OutputDirectory is null)
+            {
+                // replace extension
+                outFileName = Path.ChangeExtension(filePath, ".dec.lua");
+            }
+            else
+            {
+                // get basename and join with specified output directory
+                string basename = Path.GetFileName(filePath);
+                outFileName = Path.Join(AppInfo.OutputDirectory, basename);
+            }
 
             // save output
             File.WriteAllText(outFileName, output);
@@ -58,17 +68,15 @@ class Program
     {
         var files = new List<string>();
 
-        string luaExtension = "*.lua*";
-        if (UsesDebugInfo)
-        {
-            luaExtension = "*.luac";
-        }
+        string luaExtension = !UsesDebugInfo ? "*.lua*" : "*.luac";
 
         foreach (var arg in args)
         {
+            Console.WriteLine($"Checking if {arg} exists!");
             if (!File.Exists(arg) && !Directory.Exists(arg))
                 continue;
 
+            Console.WriteLine($"{arg} exists!");
             var attr = File.GetAttributes(arg);
             // determine if we're a directory first
             // if so only includes file that are of ".lua" or ".luac" extension
@@ -97,7 +105,7 @@ class Program
     }
 
     public void Run(
-        string outputDir,
+        string? outputDir,
         bool doExport, bool doRawDump,
         bool debug,
         bool funcStats,
@@ -111,6 +119,16 @@ class Program
 
         AppInfo.ShowFunctionData = funcStats;
         UsesDebugInfo = debug;
+
+        if (outputDir is not null)
+        {
+            if (!Directory.Exists(outputDir))
+                Directory.CreateDirectory(outputDir);
+
+            AppInfo.OutputDirectory = outputDir;
+        }
+
+        Console.WriteLine($"Files: {String.Join(", ", args)}");
 
         // parse files from arguments
         var files = ParseFilesFromArgs(args);
@@ -126,10 +144,10 @@ class Program
 
     public async Task<int> Main(string[] args)
     {
-        var outDirOption = new Option<string>(
+        var outDirOption = new Option<string?>(
             aliases: new string[] { "--output-dir", "-o" },
-            description: "Specify the directory to output decompiled lua files.",
-            getDefaultValue: () => ".");
+            description: "Specify the directory to output decompiled lua files. If none is provided, " +
+                         "it will write to the same location as the input lua file.");
 
         var doExport = new Option<bool>(
             name: "--export",
