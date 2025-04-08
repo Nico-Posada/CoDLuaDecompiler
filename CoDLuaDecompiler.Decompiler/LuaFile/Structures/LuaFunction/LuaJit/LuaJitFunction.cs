@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using CoDLuaDecompiler.Common;
 using CoDLuaDecompiler.Decompiler.Extensions;
 using CoDLuaDecompiler.Decompiler.IR.Functions;
 using CoDLuaDecompiler.Decompiler.LuaFile.LuaJit;
@@ -141,7 +142,7 @@ namespace CoDLuaDecompiler.Decompiler.LuaFile.Structures.LuaFunction.LuaJit
                 
                 if (!String.IsNullOrEmpty(str) && str.Length > 10 && str.StartsWith("x64:"))
                 {
-                    var hash = Convert.ToUInt64(str.Substring(4).Replace(".lua", ""), 16) & 0xFFFFFFFFFFFFFFF;
+                    var hash = Convert.ToUInt64(str.Substring(4).Replace(".lua", ""), 16) & AppInfo.HashMask;
                     if (Decompiler.HashEntries.ContainsKey(hash))
                         str = Decompiler.HashEntries[hash];
                     else

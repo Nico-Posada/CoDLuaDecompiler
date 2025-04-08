@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using CoDLuaDecompiler.AssetExporter.Games;
 using CoDLuaDecompiler.AssetExporter.Util;
+using CoDLuaDecompiler.Common;
 using CoDLuaDecompiler.Decompiler;
 using CoDLuaDecompiler.Decompiler.LuaFile;
 using CoDLuaDecompiler.HashResolver;
@@ -22,7 +23,7 @@ public class AssetExport : IAssetExport
     public AssetExport(IDecompiler decompiler, IPackageIndex packageIndex)
     {
         _decompiler = decompiler;
-        _hashEntries = packageIndex.GetEntries();
+        _hashEntries = packageIndex.GetEntries(AppInfo.HashMask);
     }
     
     public static Dictionary<string, Tuple<IGame, bool>> Games = new Dictionary<string, Tuple<IGame, bool>>()

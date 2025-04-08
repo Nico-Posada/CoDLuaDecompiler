@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using CoDLuaDecompiler.Common;
 using CoDLuaDecompiler.Decompiler.Extensions;
 using CoDLuaDecompiler.Decompiler.LuaFile.LuaJit;
 using CoDLuaDecompiler.Decompiler.LuaFile.Structures.LuaConstant.LuaJit;
@@ -42,7 +43,7 @@ namespace CoDLuaDecompiler.Decompiler.LuaFile.Structures.LuaFunction.LuaJit
             {
                 var hi = Reader.ReadULEB128();
                 var lo = Reader.ReadULEB128();
-                var hash = ((hi << 32) | lo) & 0xFFFFFFFFFFFFFFF;
+                var hash = ((hi << 32) | lo) & AppInfo.HashMask;
                 if (Decompiler.HashEntries.ContainsKey(hash))
                     return new LuaJitConstant(Decompiler.HashEntries[hash]);
                 return new LuaJitConstant(hash);
@@ -62,7 +63,7 @@ namespace CoDLuaDecompiler.Decompiler.LuaFile.Structures.LuaFunction.LuaJit
             {
                 var hi = Reader.ReadULEB128();
                 var lo = Reader.ReadULEB128();
-                var hash = ((hi << 32) | lo) & 0xFFFFFFFFFFFFFFF;
+                var hash = ((hi << 32) | lo) & AppInfo.HashMask;
                 if (Decompiler.HashEntries.ContainsKey(hash))
                     return new LuaJitConstant(Decompiler.HashEntries[hash]);
                 return new LuaJitConstant(hash);

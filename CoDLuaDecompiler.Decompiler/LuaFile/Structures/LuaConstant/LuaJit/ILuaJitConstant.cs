@@ -13,5 +13,6 @@ namespace CoDLuaDecompiler.Decompiler.LuaFile.Structures.LuaConstant.LuaJit
         public LuaJitTable Table { get; set; }
         public bool BoolValue { get; protected set; }
         public ulong HashValue { get; protected set; }
+        public int? HashType { get; protected set; }
     }
 }

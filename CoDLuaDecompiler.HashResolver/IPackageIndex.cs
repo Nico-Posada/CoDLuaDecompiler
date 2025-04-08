@@ -4,6 +4,6 @@ namespace CoDLuaDecompiler.HashResolver;
 
 public interface IPackageIndex
 {
-    void Load();
-    Dictionary<ulong, string> GetEntries();
+    void Load(ulong hashMask);
+    Dictionary<ulong, string> GetEntries(ulong hashMask);
 }

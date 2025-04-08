@@ -1,3 +1,4 @@
+using CoDLuaDecompiler.Common;
 using CoDLuaDecompiler.Decompiler.IR.Identifiers;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -11,6 +12,7 @@ namespace CoDLuaDecompiler.Decompiler.IR.Expression
         public string String { get; set; }
         public bool Boolean { get; set; }
         public ulong Hash { get; set; }
+        public int? HashType { get; set; }
 
         public int Id { get; set; }
         
@@ -55,6 +57,15 @@ namespace CoDLuaDecompiler.Decompiler.IR.Expression
         {
             Type = Identifiers.ValueType.Hash;
             Hash = h;
+            HashType = null;
+            Id = id;
+        }
+
+        public Constant(ulong h, int? htype, int id)
+        {
+            Type = Identifiers.ValueType.Hash;
+            Hash = h;
+            HashType = htype;
             Id = id;
         }
 
@@ -85,7 +96,7 @@ namespace CoDLuaDecompiler.Decompiler.IR.Expression
                 case Identifiers.ValueType.Boolean:
                     return Boolean ? "true" : "false";
                 case Identifiers.ValueType.Hash:
-                    return $"0x{Hash/* & 0xFFFFFFFFFFFFFFF*/:X016}";
+                    return (!AppInfo.ShowHashType || HashType is null) ? $"0x{Hash:X016}" : $"{HashType!}#0x{Hash:X016}";
                 case Identifiers.ValueType.Table:
                     return "{}";
                 case Identifiers.ValueType.VarArgs:

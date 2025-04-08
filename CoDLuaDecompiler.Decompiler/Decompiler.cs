@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using CoDLuaDecompiler.Common;
 using CoDLuaDecompiler.Decompiler.Analyzers;
 using CoDLuaDecompiler.Decompiler.IR;
 using CoDLuaDecompiler.Decompiler.IR.Functions;
@@ -15,7 +16,7 @@ namespace CoDLuaDecompiler.Decompiler
 
         public Decompiler(IPackageIndex packageIndex)
         {
-            HashEntries = packageIndex.GetEntries();
+            HashEntries = packageIndex.GetEntries(AppInfo.HashMask);
         }
 
         public Function GetDecompiledFile(ILuaFile luaFile)

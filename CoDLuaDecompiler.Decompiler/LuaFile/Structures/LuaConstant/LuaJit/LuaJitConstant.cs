@@ -23,18 +23,18 @@ namespace CoDLuaDecompiler.Decompiler.LuaFile.Structures.LuaConstant.LuaJit
             NumberValue = num;
         }
         
+        public LuaJitConstant(ulong num, int type)
+        {
+            Type = LuaJitConstantType.Hash;
+            HashValue = num;
+            HashType = type;
+        }
+
         public LuaJitConstant(ulong num)
         {
-            if (Decompiler.HashEntries.ContainsKey(HashValue))
-            {
-                StringValue = Decompiler.HashEntries[HashValue];
-                Type = LuaJitConstantType.String;
-            }
-            else
-            {
-                Type = LuaJitConstantType.Hash;
-                HashValue = num;
-            }
+            Type = LuaJitConstantType.Hash;
+            HashValue = num;
+            HashType = null;
         }
 
         public LuaJitConstant(LuaJitFunction func)
@@ -63,8 +63,8 @@ namespace CoDLuaDecompiler.Decompiler.LuaFile.Structures.LuaConstant.LuaJit
                 LuaJitConstantType.Number => NumberValue.ToString(CultureInfo.InvariantCulture),
                 LuaJitConstantType.Nil => "nil",
                 LuaJitConstantType.Boolean => BoolValue ? "true" : "false",
-                LuaJitConstantType.Function => Function.ToString(),
-                LuaJitConstantType.Table => Table.ToString(),
+                LuaJitConstantType.Function => Function.ToString()!,
+                LuaJitConstantType.Table => Table.ToString()!,
                 //LuaJitConstantType.Hash => $"0x{HashValue & 0xFFFFFFFFFFFFFFF:X}",
                 _ => "NULL"
             };

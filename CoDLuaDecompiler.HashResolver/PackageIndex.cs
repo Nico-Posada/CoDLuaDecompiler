@@ -17,7 +17,7 @@ public class PackageIndex : IPackageIndex
     /// Loads Package Index File
     /// </summary>
     /// <param name="filePath">Path to Package file</param>
-    public bool Load(string filePath)
+    public bool Load(string filePath, ulong hashMask)
     {
         using (BinaryReader reader = new BinaryReader(File.OpenRead(filePath)))
         {
@@ -44,7 +44,7 @@ public class PackageIndex : IPackageIndex
                     // Loop Count
                     for (int i = 0; i < count; i++)
                         // Read ID and String
-                        Entries[internalReader.ReadUInt64() & 0xFFFFFFFFFFFFFFF] = ReadNullTerminatedString(internalReader);
+                        Entries[internalReader.ReadUInt64() & hashMask] = ReadNullTerminatedString(internalReader);
             }
         }
 
@@ -115,7 +115,7 @@ public class PackageIndex : IPackageIndex
 
     private bool _isLoaded = false;
 
-    public void Load()
+    public void Load(ulong hashMask)
     {
         if (_isLoaded)
             return;
@@ -129,7 +129,7 @@ public class PackageIndex : IPackageIndex
         {
             try
             {
-                Load(packageFile);
+                Load(packageFile, hashMask);
             }
             catch (Exception e)
             {
@@ -139,10 +139,10 @@ public class PackageIndex : IPackageIndex
         _isLoaded = true;
     }
 
-    public Dictionary<ulong, string> GetEntries()
+    public Dictionary<ulong, string> GetEntries(ulong hashMask)
     {
         if (!_isLoaded)
-            Load();
+            Load(hashMask);
         return Entries;
     }
 }

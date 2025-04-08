@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using CoDLuaDecompiler.Common;
 using CoDLuaDecompiler.Decompiler.Extensions;
 using CoDLuaDecompiler.Decompiler.LuaFile.LuaJit;
 using CoDLuaDecompiler.Decompiler.LuaFile.Structures.LuaConstant.LuaJit;
@@ -49,11 +50,11 @@ namespace CoDLuaDecompiler.Decompiler.LuaFile.Structures.LuaFunction.LuaJit
             {
                 var hi = Reader.ReadULEB128();
                 var lo = Reader.ReadULEB128();
-                var idfk = Reader.ReadByte(); // Seems like hash type? 2 for material, 0 for array index, engine #
-                var hash = ((hi << 32) | lo); //& 0xFFFFFFFFFFFFFFF;
+                var hashType = Reader.ReadByte();
+                var hash = ((hi << 32) | lo) & AppInfo.HashMask;
                 if (Decompiler.HashEntries.ContainsKey(hash))
                     return new LuaJitConstant(Decompiler.HashEntries[hash]);
-                return new LuaJitConstant(hash);
+                return new LuaJitConstant(hash, hashType);
             }
             Console.WriteLine("unknown TYPE " + type);
 
@@ -70,11 +71,11 @@ namespace CoDLuaDecompiler.Decompiler.LuaFile.Structures.LuaFunction.LuaJit
             {
                 var hi = Reader.ReadULEB128();
                 var lo = Reader.ReadULEB128();
-                Reader.ReadByte();
-                var hash = ((hi << 32) | lo);// & 0xFFFFFFFFFFFFFFF;
+                var hashType = Reader.ReadByte();
+                var hash = ((hi << 32) | lo) & AppInfo.HashMask;
                 if (Decompiler.HashEntries.ContainsKey(hash))
                     return new LuaJitConstant(Decompiler.HashEntries[hash]);
-                return new LuaJitConstant(hash);
+                return new LuaJitConstant(hash, hashType);
             }
             if (type == 3)
                 return new LuaJitConstant(Reader.ReadLEB128());

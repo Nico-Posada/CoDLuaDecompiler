@@ -72,11 +72,9 @@ class Program
 
         foreach (var arg in args)
         {
-            Console.WriteLine($"Checking if {arg} exists!");
             if (!File.Exists(arg) && !Directory.Exists(arg))
                 continue;
 
-            Console.WriteLine($"{arg} exists!");
             var attr = File.GetAttributes(arg);
             // determine if we're a directory first
             // if so only includes file that are of ".lua" or ".luac" extension
@@ -106,11 +104,19 @@ class Program
 
     public void Run(
         string? outputDir,
+        bool showHashType,
         bool doExport, bool doRawDump,
         bool debug,
         bool funcStats,
+        int bitsInHash,
         IEnumerable<string> args)
     {
+        if (!(0 <= bitsInHash && bitsInHash <= 64))
+        {
+            Console.Error.WriteLine($"[!] --bits-in-hash arg must be a value 0-64. Got {bitsInHash}.");
+            return;
+        }
+
         if (doExport)
         {
             Console.WriteLine("Starting asset export from memory.");
@@ -118,6 +124,8 @@ class Program
         }
 
         AppInfo.ShowFunctionData = funcStats;
+        AppInfo.ShowHashType = showHashType;
+        AppInfo.HashMask = ~0UL >> (64 - bitsInHash);
         UsesDebugInfo = debug;
 
         if (outputDir is not null)
@@ -127,8 +135,6 @@ class Program
 
             AppInfo.OutputDirectory = outputDir;
         }
-
-        Console.WriteLine($"Files: {String.Join(", ", args)}");
 
         // parse files from arguments
         var files = ParseFilesFromArgs(args);
@@ -164,26 +170,37 @@ class Program
             description: "Will extract debug information from T7 luas. Will change the extension to look for from *.lua to *.luac.",
             getDefaultValue: () => false);
 
+        var hashType = new Option<bool>(
+            aliases: new string[] { "--hash-type", "-ht" },
+            description: "If enabled, will prefix all hash values with `{HashType}#` to indicate what type of hash it is.",
+            getDefaultValue: () => false);
+
         var funcStats = new Option<bool>(
             aliases: new string[] { "--functionstats", "-fs" },
             description: "Prepends function information to decompiled functions.",
             getDefaultValue: () => false);
 
+        var bitsHash = new Option<int>(
+            aliases: new string[] { "--bits-in-hash", "-bh" },
+            description: "The number of bits in a hash. Affects the output of hashes and hashes that are searched for in wni files. Max value is 64.",
+            getDefaultValue: () => 64);
+
         var luasPath = new Argument<IEnumerable<string>>(
             name: "paths",
             description: "A list of 1 or more paths to a directory of luas or a single lua file.");
 
-
-        var rootCommand = new RootCommand("Lua decompiler for Call of Duty games.");
+        var rootCommand = new RootCommand($"Lua decompiler for Call of Duty games. Version {AppInfo.Version}");
         rootCommand.AddOption(outDirOption);
         rootCommand.AddOption(funcStats);
+        rootCommand.AddOption(hashType);
+        rootCommand.AddOption(bitsHash);
         rootCommand.AddOption(doExport);
         rootCommand.AddOption(doRawDump);
         rootCommand.AddOption(debug);
         rootCommand.AddArgument(luasPath);
 
         rootCommand.SetHandler(Run,
-            outDirOption, funcStats, doExport, doRawDump, debug, luasPath);
+            outDirOption, hashType, doExport, doRawDump, debug, funcStats, bitsHash, luasPath);
 
         return await rootCommand.InvokeAsync(args);
     }

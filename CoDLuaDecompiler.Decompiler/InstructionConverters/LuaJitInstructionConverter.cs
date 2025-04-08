@@ -40,7 +40,7 @@ namespace CoDLuaDecompiler.Decompiler.InstructionConverters
             if (con.Type == LuaJitConstantType.Boolean)
                 return new Constant(con.BoolValue, id);
             if (con.Type == LuaJitConstantType.Hash)
-                return new Constant(con.HashValue, id);
+                return new Constant(con.HashValue, con.HashType, id);
             if (con.Type == LuaJitConstantType.Function)
             {
                 foreach (var upvalueReference in con.Function.UpvalueReferences)
