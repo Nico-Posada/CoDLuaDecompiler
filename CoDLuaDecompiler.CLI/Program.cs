@@ -49,7 +49,7 @@ class Program
             else
             {
                 // get basename and join with specified output directory
-                string basename = Path.GetFileName(filePath);
+                string basename = Path.GetFileName(Path.ChangeExtension(filePath, ".dec.lua"));
                 outFileName = Path.Join(AppInfo.OutputDirectory, basename);
             }
 
